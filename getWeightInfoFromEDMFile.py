@@ -1,18 +1,20 @@
+#!/usr/bin/env python
 import argparse
 import re
 import xml.etree.ElementTree as ET
 from Utilities import EDMWeightInfo
 from Utilities import LHAPDFInfo
+from Utilities import prettytable
 
 lhapdf_info = LHAPDFInfo.getPDFIds()
 def getComLineArgs():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--file", required=True,
+    parser.add_argument("-f", "--file_name", required=True,
             help="EDM file name (should be full path, starting"
                 "with '/store' for file on DAS"
                 )
-    return parser.parse_arguments()
-def getWeightSet(entry):
+    return parser.parse_args()
+def getPDFSetInfo(entry):
     weight_set = re.findall(r'\d+', entry)
     if len(weight_set) == 0:
         return ""
@@ -24,11 +26,20 @@ def getWeightSet(entry):
     return ""
 def main():
     args = getComLineArgs()
-    weight_info = EDMWeightInfo.getWeightIDs('/store/mc/RunIISpring15DR74/WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v1/60000/20469B1E-9F18-E511-A402-0002C94CD12E.root')
-    weight_info = "<header>" + weight_info + "</header>"
-    root = ET.fromstring(weight_info)
-    root = ET.fromstring(weight_info)
+    weight_info = EDMWeightInfo.getWeightIDs(args.file_name)
+    root = ET.fromstring("<header>" + weight_info + "</header>")
+    other_weights_table = prettytable.PrettyTable(["LHE weight ID", "LHE Weight Name"])
+    pdf_weights_table = prettytable.PrettyTable(["LHE weight ID", "LHE Weight Name", "PDF set name", "LHAPDF set path"])
     for block in root:
         for entry in block:
-            print entry.tag, entry.attrib, entry.text
-            print getWeightSet(entry.text) 
+            pdf_info = getPDFSetInfo(entry.text) 
+            if pdf_info == "":
+                other_weights_table.add_row([entry.attrib["id"], entry.text])
+            else:
+                pdf_weights_table.add_row([entry.attrib["id"], entry.text, pdf_info["name"],
+                    pdf_info["path"]])
+    print other_weights_table
+    print pdf_weights_table
+
+if __name__ == "__main__":
+        main()
