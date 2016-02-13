@@ -34,4 +34,4 @@ def getWeightIDs(edm_file_name) :
         if isWeights :
             lines.extend(hlines)
             break
-    return ''.join(lines)
+    return ''.join(lines).rstrip("<")

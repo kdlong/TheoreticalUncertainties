@@ -23,10 +23,15 @@ def getPDFSetInfo(entry):
         central_id = str(weight_set - (weight_set % 10**i))
         if central_id in lhapdf_info.keys():
             return lhapdf_info[central_id]
+    # For pdfas sets entry central + 101 should be associated with central set
+    central_id = str(weight_set - (weight_set % 10**i) - 100)
+    if central_id in lhapdf_info.keys():
+        return lhapdf_info[central_id]
     return ""
 def main():
     args = getComLineArgs()
     weight_info = EDMWeightInfo.getWeightIDs(args.file_name)
+    print weight_info
     root = ET.fromstring("<header>" + weight_info + "</header>")
     other_weights_table = prettytable.PrettyTable(["LHE weight ID", "LHE Weight Name"])
     pdf_weights_table = prettytable.PrettyTable(["LHE weight ID", "LHE Weight Name", "PDF set name", "LHAPDF set path"])
