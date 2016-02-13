@@ -2,7 +2,7 @@ from HTMLParser import HTMLParser
 import urllib2
 
 # create a subclass and override the handler methods
-class MyHTMLParser(HTMLParser):
+class LHAHTMLParser(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
         self.foundPDFs = False
@@ -27,13 +27,14 @@ class MyHTMLParser(HTMLParser):
             elif self.current_set in self.pdf_map.keys():
                 self.pdf_map[self.current_set]["name"] = data
     def get_pdfs(self):
-        return self.pdf_map
+        pdf_map = {key: value for key, value in self.pdf_map.iteritems() 
+                             if "path" in value.keys()}
+        return pdf_map
 
-# instantiate the parser and fed it some HTML
-parser = MyHTMLParser()
-
-response = urllib2.urlopen('https://lhapdf.hepforge.org/pdfsets.html')
-info = response.read()
-parser.feed(info)
-
-pdf_map = parser.get_pdfs()
+def getPDFIds():
+    # instantiate the parser and fed it some HTML
+    parser = LHAHTMLParser()
+    response = urllib2.urlopen('https://lhapdf.hepforge.org/pdfsets.html')
+    info = response.read()
+    parser.feed(info)
+    return parser.get_pdfs()
