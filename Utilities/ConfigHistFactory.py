@@ -39,7 +39,7 @@ class ConfigHistFactory(object):
         for key in ['nbins', 'xmin', 'xmax']:
             bin_info.update({key : hist_info[key]})
         return bin_info
-    def setProofAliases(self, channel):
+    def setProofAliases(self, channel=""):
         proof = ROOT.gProof
         proof.ClearInput()
         alias_list = []
@@ -74,6 +74,14 @@ class ConfigHistFactory(object):
         return self.mc_info
     def getListOfPlotObjects(self):
         return self.plot_objects.keys()
+    def hackInAliases(self, cut_string, channel=""):
+        if channel != "":
+            for name, value in self.aliases['State'][channel].iteritems():
+                cut_string = cut_string.replace(name, value)
+        for name, value in self.aliases['Event'].iteritems():
+            cut_string = cut_string.replace(name, value)
+        return cut_string
+
 def main():
     test = ConfigHistFactory("/afs/cern.ch/user/k/kelong/work/AnalysisDatasetManager",
         "WZAnalysis", "Zselection")

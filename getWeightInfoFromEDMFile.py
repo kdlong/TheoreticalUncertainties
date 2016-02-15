@@ -33,16 +33,18 @@ def main():
     weight_info = EDMWeightInfo.getWeightIDs(args.file_name)
     print weight_info
     root = ET.fromstring("<header>" + weight_info + "</header>")
-    other_weights_table = prettytable.PrettyTable(["LHE weight ID", "LHE Weight Name"])
-    pdf_weights_table = prettytable.PrettyTable(["LHE weight ID", "LHE Weight Name", "PDF set name", "LHAPDF set path"])
+    other_weights_table = prettytable.PrettyTable(["Index", "LHE weight ID", "LHE Weight Name"])
+    pdf_weights_table = prettytable.PrettyTable(["Index", "LHE weight ID", "LHE Weight Name", "PDF set name", "LHAPDF set path"])
+    i = 0
     for block in root:
         for entry in block:
             pdf_info = getPDFSetInfo(entry.text) 
             if pdf_info == "":
-                other_weights_table.add_row([entry.attrib["id"], entry.text])
+                other_weights_table.add_row([i, entry.attrib["id"], entry.text])
             else:
-                pdf_weights_table.add_row([entry.attrib["id"], entry.text, pdf_info["name"],
+                pdf_weights_table.add_row([i, entry.attrib["id"], entry.text, pdf_info["name"],
                     pdf_info["path"]])
+            i += 1
     print other_weights_table
     print pdf_weights_table
 

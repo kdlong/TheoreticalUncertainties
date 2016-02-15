@@ -7,6 +7,7 @@ import datetime
 import ROOT
 import Utilities.scalePDFUncertainties as Uncertainty
 import Utilities.Ntuple as Ntuple
+import Utilities.UserInput as UserInput
 from Utilities.ConfigHistFactory import ConfigHistFactory
 from collections import OrderedDict
 
@@ -37,56 +38,69 @@ def getVariations(weight_ids, weight_sums):
         label = ''.join([weight[0][0], "001"]) 
         values[label][weight[0]] = weight[1]
     return values
+def excludeKeysFromDict(values, exclude):
+    return [x for key, x in values.iteritems()
+            if key not in exclude]
+
 def main():
     args = getComLineArgs()
-    print args
     ROOT.gROOT.SetBatch(True)
     ROOT.TProof.Open('workers=24')
-    
-    file1_sel = getWeightsFromFile(args.denominator, args.denom_cut)
-    file2_sel = getWeightsFromFile(args.numerator, args.num_cut)
-    print file1_sel
-    print file2_sel
-    variations = file1_sel
-    for weight_set in file1_sel.keys():
-        for key in file1_sel[key].keys():
-            variations[weight_set][key] /= file2_sel[weight_set][key]
-    central = variations["1001"]["1001"]
-    print "Central is %f" % central
-    print central*2.
-    scales = Uncertainty.getScaleUncertainty(variations)
-    print scales
-    print scales["up"]*2
-    print "Scale up is %f" % scales["up"]*central
-    print "Scale down is %f" % scales["down"]*central
-    print "PDF is %f" % Uncertainty.getFullPDFUncertainty(variations)*central
-#  
+    num_sel = getWeightsFromFile(args.numerator, args.num_cut)
+    denom_sel = getWeightsFromFile(args.denominator, args.denom_cut)
+    variations = num_sel
+    central = num_sel["1001"]["1001"]/denom_sel["1001"]["1001"]
+    for weight_set in num_sel.keys():
+        for weight_id in num_sel[weight_set].keys():
+            variations[weight_set][weight_id] /= denom_sel[weight_set][weight_id]
+            if weight_id != "1001":
+                variations[weight_set][weight_id] /= central
+    scales = Uncertainty.getScaleUncertainty(excludeKeysFromDict(
+        variations["1001"], ["1001", "1006", "1008"])
+    )
+    pdf_unc = Uncertainty.getFullNNPDFUncertainty(excludeKeysFromDict(
+        variations["2001"], ["2101", "2102"]),
+        [variations["2001"]["2101"], variations["2001"]["2102"]]
+    )
+    print variations
+    print '-'*80
+    print 'Script called at %s' % datetime.datetime.now()
+    print 'The command was: %s' % ' '.join(sys.argv)
+    print '-'*40
+    print "Final Result in %:"
+    print "%0.2f^{+%0.2f%%}_{-%0.2f%%} \pm %0.2f%%" % tuple(round(x*100, 2)
+            for x in [central, scales["up"], scales["down"], pdf_unc["up"]])
+    print ''.join(["%0.2f" % round(central*100, 2), 
+            "^{+%0.2f}_{-%0.2f} \pm %0.2f" % tuple(round(x*central*100, 2)
+            for x in [scales["up"], scales["down"], pdf_unc["up"]])])
+    print '-'*40
+    print pdf_unc
+  
 def getWeightsFromFile(filename, cut):
     path = "/cms/kdlong" if "hep.wisc.edu" in os.environ['HOSTNAME'] else \
         "/afs/cern.ch/user/k/kelong/work"
     config_factory = ConfigHistFactory(
         "%s/AnalysisDatasetManager" % path,
-        "ZZGenAnalysis/isHardProcess"
+        "WZGenAnalysis/isHardProcess"
     )
-    #mc_info = config_factory.getMonteCarloInfo()
+    #config_factory.setProofAliases()
     all_files = config_factory.getFileInfo()
     hist_factory = OrderedDict() 
-    selection = "ZZGenAnalysis/isHardProcess"
+    selection = "WZGenAnalysis/isHardProcess"
     if filename not in all_files.keys():
         logging.warning("%s is not a valid file name (must match a definition in FileInfo/%s.json)" % \
             (filename, selection))
     ntuple = Ntuple.Ntuple("LHEweights")
-    proof_name = "-".join([filename, "%s#/%s" % (selection.replace("/", "-"), "analyzeZZ/Ntuple")])
+    proof_name = "-".join([filename, "%s#/%s" % (selection.replace("/", "-"), "analyzeWZ/Ntuple")])
     ntuple.setProofPath(proof_name)
-    metaTree = ROOT.TChain("analyzeZZ/MetaData")
+    metaTree = ROOT.TChain("analyzeWZ/MetaData")
     metaTree.Add(all_files[filename]["file_path"])
-    
     weight_ids = []
     for row in metaTree:
         for weight_id in row.LHEweightIDs:
             weight_ids.append(weight_id)
         break
-    weight_sums = ntuple.getSumWeights(cut)
+    weight_sums = ntuple.getSumWeights(config_factory.hackInAliases(cut))
     return getVariations(weight_ids, weight_sums)
 
 #    print 'Script called at %s' % datetime.datetime.now()

@@ -8,6 +8,7 @@
 #include <TH1F.h>
 #include <TTreeFormula.h>
 #include <vector>
+#include <iostream>
 
 class sumWeights : public TSelector {
 public :
@@ -58,7 +59,7 @@ void sumWeights::Init(TTree *tree)
   SafeDelete(fCutFormula);
   fCutFormula = new TTreeFormula("CutFormula", fOption, fChain);
   fCutFormula->SetQuickLoad(kTRUE);
-  if (!fCutFormula->GetNdim()) { delete fCutFormula; fCutFormula = 0; }
+  if (!fCutFormula->GetNdim()) { delete fCutFormula; fCutFormula = 0;}
 }
 
 Bool_t sumWeights::Notify()

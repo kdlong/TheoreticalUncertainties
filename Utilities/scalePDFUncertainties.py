@@ -1,4 +1,5 @@
 import math
+import numpy
 import ROOT
 from collections import OrderedDict
 
@@ -6,37 +7,48 @@ from collections import OrderedDict
 # times their central values are as the scale uncertainty.
 # Assymetric variations (e.g. uF = 0.5, uR = 2) are excluded
 def getScaleUncertainty(values):
-    scale_info = {}
-    central = values["1001"]["1001"]
-    exclude = ["1006", "1008"]
-    scales = [value for key, value in values["1001"].iteritems() if key not in exclude]
-    scale_info['down'] = (1-min(scales)/central)
-    scale_info['up'] = (max(scales)/central - 1)
-    return scale_info
+    scales = {}
+    scales['down'] = 1- min(values)
+    scales['up'] = max(values) - 1 
+    return scales
 # Compute alpha_s variation uncertainties, using alpha_s = 0.116 and 0.120, which
 # are stored as weight 2101 and 2102 in CMS samples, according to equation 27 in
 # PDF4LHC paper: http://arxiv.org/pdf/1510.03865v1.pdf
 def getAlphaSUncertainty(values):
-    central = values["1001"]["1001"]
-    return abs(values["2001"]["2101"] - values["2001"]["2102"])*100/(2*central)
+    return abs(values[0] - values[1])/2
+# Copied from MG code. To modify
+def getHessianUncertainty(values):        
+    lhaid=int(self.run_card['lhaid'])
+    pdf_upp=0.0
+    pdf_low=0.0
+    if lhaid <= 90000:
+        # use Hessian method (CTEQ & MSTW)
+        if numofpdf>1:
+            for i in range(int(numofpdf/2)):
+                pdf_upp=pdf_upp+math.pow(max(0.0,pdfs[2*i+1]-cntrl_val,pdfs[2*i+2]-cntrl_val),2)
+                pdf_low=pdf_low+math.pow(max(0.0,cntrl_val-pdfs[2*i+1],cntrl_val-pdfs[2*i+2]),2)
+            if cntrl_val != 0.0:
+                scale_pdf_info['pdf_upp'] = math.sqrt(pdf_upp)/cntrl_val*100
+                scale_pdf_info['pdf_low'] = math.sqrt(pdf_low)/cntrl_val*100
+            else:
+                scale_pdf_info['pdf_upp'] = 0.0
+                scale_pdf_info['pdf_low'] = 0.0
 # Compute Gaussian PDF uncertainties, appropriate for NNPDF
 def getNNPDFUncertainty(values):
     pdf_unc = {}
-    central = values["1001"]["1001"]
-    # These are alpha_s variations
-    exclude = ["2001", "2002"]
-    variations = [value for key, value in values["2001"].iteritems() if key not in exclude]
-    variance = 0
-    for xsec in variations:
-        variance += (xsec - central)*(xsec - central)
-        num = len(variations) - 1
-    return math.sqrt(variance/(num))/central
+    pdf_unc["up"] = numpy.std(values, ddof=1)
+    pdf_unc["down"] = pdf_unc["up"]
+    return pdf_unc
 # Combine PDF fit and alpha_s uncertainties according to PDF4LHC recommendation.
 # Equation 30 in http://arxiv.org/pdf/1510.03865v1.pdf, with r = 0.75
 # (alpha_s uncertainty is +- 0.0015, and we use 0.120 and 0.116 PDF sets)
-def getFullPDFUncertainty(values):
-    pdf_unc = getNNPDFUncertainty(values)
-    alpha_s_unc = getAlphaSUncertainty(values)
+def getFullNNPDFUncertainty(pdf_values, alphas_values):
+    pdf_unc = getNNPDFUncertainty(pdf_values)
+    alpha_s_unc = getAlphaSUncertainty(alphas_values)
+    print alpha_s_unc
     # Taken to give the +- 0.00015 variation
     r = 0.75
-    return math.sqrt(pdf_unc*pdf_unc + r*r*alpha_s_unc*alpha_s_unc)
+    tot_pdf_unc = {}
+    tot_pdf_unc["up"] = math.sqrt(pdf_unc["up"]*pdf_unc["up"] + r*r*alpha_s_unc*alpha_s_unc) 
+    tot_pdf_unc["down"] = math.sqrt(pdf_unc["down"]*pdf_unc["down"] + r*r*alpha_s_unc*alpha_s_unc) 
+    return tot_pdf_unc
