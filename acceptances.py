@@ -7,7 +7,6 @@ import datetime
 import ROOT
 import Utilities.scalePDFUncertainties as Uncertainty
 import Utilities.Ntuple as Ntuple
-import Utilities.UserInput as UserInput
 from Utilities.ConfigHistFactory import ConfigHistFactory
 from collections import OrderedDict
 
@@ -21,6 +20,8 @@ def getComLineArgs():
                         help="first cut")
     parser.add_argument("--num_cut", type=str, required=True,
                         help="Second cut")
+    parser.add_argument("-a", "--analysis", type=str, required=True,
+                        help="Name of analysis (in AnalysisDatasetManager)")
     args = parser.parse_args()
     return args
 def getVariations(weight_ids, weight_sums):
@@ -46,8 +47,12 @@ def main():
     args = getComLineArgs()
     ROOT.gROOT.SetBatch(True)
     ROOT.TProof.Open('workers=24')
-    num_sel = getWeightsFromFile(args.numerator, args.num_cut)
-    denom_sel = getWeightsFromFile(args.denominator, args.denom_cut)
+    sameFile = False
+    if not args.denominator == args.numerator:
+        sameFile = True
+
+    num_sel = getWeightsFromFile(args.numerator, args.analysis, args.num_cut, sameFile)
+    denom_sel = getWeightsFromFile(args.denominator, args.analysis, args.denom_cut, sameFile)
     variations = num_sel
     central = num_sel["1001"]["1001"]/denom_sel["1001"]["1001"]
     for weight_set in num_sel.keys():
@@ -55,6 +60,7 @@ def main():
             variations[weight_set][weight_id] /= denom_sel[weight_set][weight_id]
             if weight_id != "1001":
                 variations[weight_set][weight_id] /= central
+
     scales = Uncertainty.getScaleUncertainty(excludeKeysFromDict(
         variations["1001"], ["1001", "1006", "1008"])
     )
@@ -62,7 +68,6 @@ def main():
         variations["2001"], ["2101", "2102"]),
         [variations["2001"]["2101"], variations["2001"]["2102"]]
     )
-    print variations
     print '-'*80
     print 'Script called at %s' % datetime.datetime.now()
     print 'The command was: %s' % ' '.join(sys.argv)
@@ -74,26 +79,27 @@ def main():
             "^{+%0.2f}_{-%0.2f} \pm %0.2f" % tuple(round(x*central*100, 2)
             for x in [scales["up"], scales["down"], pdf_unc["up"]])])
     print '-'*40
-    print pdf_unc
   
-def getWeightsFromFile(filename, cut):
+def getWeightsFromFile(filename, analysis, cut, normalize):
     path = "/cms/kdlong" if "hep.wisc.edu" in os.environ['HOSTNAME'] else \
         "/afs/cern.ch/user/k/kelong/work"
     config_factory = ConfigHistFactory(
         "%s/AnalysisDatasetManager" % path,
-        "WZGenAnalysis/isHardProcess"
+        analysis
     )
     #config_factory.setProofAliases()
     all_files = config_factory.getFileInfo()
+    mc_info = config_factory.getMonteCarloInfo()
     hist_factory = OrderedDict() 
-    selection = "WZGenAnalysis/isHardProcess"
     if filename not in all_files.keys():
         logging.warning("%s is not a valid file name (must match a definition in FileInfo/%s.json)" % \
-            (filename, selection))
+            (filename, analysis))
     ntuple = Ntuple.Ntuple("LHEweights")
-    proof_name = "-".join([filename, "%s#/%s" % (selection.replace("/", "-"), "analyzeWZ/Ntuple")])
+    tuple_name = "analyze%s/Ntuple" % ("WZ" if "WZ" in analysis else "ZZ")
+    proof_name = "-".join([filename, "%s#/%s" % (analysis.replace("/", "-"), 
+        tuple_name)])
     ntuple.setProofPath(proof_name)
-    metaTree = ROOT.TChain("analyzeWZ/MetaData")
+    metaTree = ROOT.TChain(tuple_name.replace("Ntuple", "MetaData"))
     metaTree.Add(all_files[filename]["file_path"])
     weight_ids = []
     for row in metaTree:
@@ -101,6 +107,13 @@ def getWeightsFromFile(filename, cut):
             weight_ids.append(weight_id)
         break
     weight_sums = ntuple.getSumWeights(config_factory.hackInAliases(cut))
+    if normalize:
+        proof_name = "-".join([filename, "%s#/%s" % (analysis.replace("/", "-"), 
+            tuple_name.split("/")[0] + "/MetaData")])
+        ntuple.setProofPath(proof_name)
+        norm = mc_info[filename]["cross_section"]/ntuple.getBranchSum("initLHEweightSums[0]")
+        weight_sums = [x*norm for x in weight_sums]
+
     return getVariations(weight_ids, weight_sums)
 
 #    print 'Script called at %s' % datetime.datetime.now()

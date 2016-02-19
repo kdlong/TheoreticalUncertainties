@@ -23,7 +23,7 @@ class Ntuple(object):
         else:
             self.chain.Draw("1>>%s(1, 0, 2)" % hist_name, 
                     "Sum$(%s)" % branch_name)
-            hist = ROOT.gROOT.FindObject("sum_hist")
+            hist = ROOT.gROOT.FindObject(hist_name)
         return hist.GetBinContent(1)
     def getSumWeights(self, cut_string):
         if self.proof_path != '':

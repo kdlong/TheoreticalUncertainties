@@ -80,6 +80,8 @@ class ConfigHistFactory(object):
                 cut_string = cut_string.replace(name, value)
         for name, value in self.aliases['Event'].iteritems():
             cut_string = cut_string.replace(name, value)
+        print "Cut string is"
+        print cut_string
         return cut_string
 
 def main():

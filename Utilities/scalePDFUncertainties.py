@@ -40,14 +40,13 @@ def getNNPDFUncertainty(values):
     pdf_unc["down"] = pdf_unc["up"]
     return pdf_unc
 # Combine PDF fit and alpha_s uncertainties according to PDF4LHC recommendation.
-# Equation 30 in http://arxiv.org/pdf/1510.03865v1.pdf, with r = 0.75
-# (alpha_s uncertainty is +- 0.0015, and we use 0.120 and 0.116 PDF sets)
+# Equation 30 in http://arxiv.org/pdf/1510.03865v1.pdf, with r = 1.5
+# (alpha_s uncertainty is +- 0.0015, and we use 0.119 and 0.117 PDF sets)
 def getFullNNPDFUncertainty(pdf_values, alphas_values):
     pdf_unc = getNNPDFUncertainty(pdf_values)
     alpha_s_unc = getAlphaSUncertainty(alphas_values)
-    print alpha_s_unc
     # Taken to give the +- 0.00015 variation
-    r = 0.75
+    r = 1.5
     tot_pdf_unc = {}
     tot_pdf_unc["up"] = math.sqrt(pdf_unc["up"]*pdf_unc["up"] + r*r*alpha_s_unc*alpha_s_unc) 
     tot_pdf_unc["down"] = math.sqrt(pdf_unc["down"]*pdf_unc["down"] + r*r*alpha_s_unc*alpha_s_unc) 

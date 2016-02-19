@@ -31,9 +31,8 @@ def getPDFSetInfo(entry):
 def main():
     args = getComLineArgs()
     weight_info = EDMWeightInfo.getWeightIDs(args.file_name)
-    print weight_info
     root = ET.fromstring("<header>" + weight_info + "</header>")
-    other_weights_table = prettytable.PrettyTable(["Index", "LHE weight ID", "LHE Weight Name"])
+    other_weights_table = prettytable.PrettyTable(["Index", "LHE Weight ID", "LHE Weight Name"])
     pdf_weights_table = prettytable.PrettyTable(["Index", "LHE weight ID", "LHE Weight Name", "PDF set name", "LHAPDF set path"])
     i = 0
     for block in root:
