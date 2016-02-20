@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import ROOT
 from DataFormats.FWLite import Handle, Events, Runs
 import sys
 import os

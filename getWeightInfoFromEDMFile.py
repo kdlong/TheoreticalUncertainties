@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 import argparse
 import re
+import sys
+tmparg = sys.argv
+sys.argv = []
 import xml.etree.ElementTree as ET
 from Utilities import EDMWeightInfo
 from Utilities import LHAPDFInfo
 from Utilities import prettytable
-
-lhapdf_info = LHAPDFInfo.getPDFIds()
+sys.argv = tmparg
+# Because pyROOT hijackes the command line args
 def getComLineArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file_name", required=True,
@@ -14,12 +17,12 @@ def getComLineArgs():
                 "with '/store' for file on DAS"
     )
     parser.add_argument("--print_header", action="store_true",
-            help="Print the raw header containing weight information" \
-            "Useful for cases where the weight parsing does not work" \
+            help="Print the raw header containing weight information. " 
+            "Useful for cases where the weight parsing does not work "
             "properly, including MadGraph LO samples"
     )
     return parser.parse_args()
-def getPDFSetInfo(entry):
+def getPDFSetInfo(entry, lhapdf_info):
     weight_set = re.findall(r'\d+', entry)
     if len(weight_set) == 0:
         return ""
@@ -35,6 +38,7 @@ def getPDFSetInfo(entry):
     return ""
 def main():
     args = getComLineArgs()
+    lhapdf_info = LHAPDFInfo.getPDFIds()
     weight_info = EDMWeightInfo.getWeightIDs(args.file_name)
     if args.print_header:
         print weight_info
@@ -45,7 +49,7 @@ def main():
     i = 0
     for block in root:
         for entry in block:
-            pdf_info = getPDFSetInfo(entry.text) 
+            pdf_info = getPDFSetInfo(entry.text, lhapdf_info) 
             if pdf_info == "":
                 other_weights_table.add_row([i, entry.attrib["id"], entry.text])
             else:
