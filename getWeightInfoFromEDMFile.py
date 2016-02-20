@@ -12,7 +12,12 @@ def getComLineArgs():
     parser.add_argument("-f", "--file_name", required=True,
             help="EDM file name (should be full path, starting"
                 "with '/store' for file on DAS"
-                )
+    )
+    parser.add_argument("--print_header", action="store_true",
+            help="Print the raw header containing weight information" \
+            "Useful for cases where the weight parsing does not work" \
+            "properly, including MadGraph LO samples"
+    )
     return parser.parse_args()
 def getPDFSetInfo(entry):
     weight_set = re.findall(r'\d+', entry)
@@ -31,6 +36,9 @@ def getPDFSetInfo(entry):
 def main():
     args = getComLineArgs()
     weight_info = EDMWeightInfo.getWeightIDs(args.file_name)
+    if args.print_header:
+        print weight_info
+        return
     root = ET.fromstring("<header>" + weight_info + "</header>")
     other_weights_table = prettytable.PrettyTable(["Index", "LHE Weight ID", "LHE Weight Name"])
     pdf_weights_table = prettytable.PrettyTable(["Index", "LHE weight ID", "LHE Weight Name", "PDF set name", "LHAPDF set path"])

@@ -2,6 +2,7 @@
 import ROOT
 from DataFormats.FWLite import Handle, Events, Runs
 import sys
+import os
 
 """
 Author: Nick Smith, U. Wisconsin -- Madison
@@ -16,10 +17,18 @@ def getWeightIDs(edm_file_name) :
         raise FileNotFoundException("File %s was not found." % edm_file_name)
     runs = Runs(edm_file_name)
     runInfoHandle = Handle("LHERunInfoProduct")
-    runInfoLabel = "externalLHEProducer"
     run = runs.__iter__().next()
-    run.getByLabel(runInfoLabel, runInfoHandle)
-    lheStuff = runInfoHandle.product()
+    run.getByLabel("externalLHEProducer", runInfoHandle)
+    try:
+        lheStuff = runInfoHandle.product()
+    except RuntimeError:
+        try:
+            run.getByLabel("source", runInfoHandle)
+            lheStuff = runInfoHandle.product()
+        except:
+            print "Error getting LHE info from file."
+            print "Are you sure this file contains LHE weights?"
+            exit(0)
 
     lines = []
     for i, h in enumerate(lheStuff.headers_begin()) :
