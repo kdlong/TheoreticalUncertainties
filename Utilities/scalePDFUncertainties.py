@@ -39,6 +39,18 @@ def getNNPDFUncertainty(values):
     pdf_unc["up"] = numpy.std(values, ddof=1)
     pdf_unc["down"] = pdf_unc["up"]
     return pdf_unc
+
+#def getNNPDFUncertainty(values):
+#    pdf_unc = {}
+#    central = values["1000"]["1001"]
+#    # These are alpha_s variations
+#    exclude = ["2001", "2002"]
+#    variations = [value for key, value in values["2000"].iteritems() if key not in exclude]
+#    variance = 0
+#    for xsec in variations:
+#        variance += (xsec - central)*(xsec - central)
+#        num = len(variations) - 1
+#    return math.sqrt(variance/(num))
 # Combine PDF fit and alpha_s uncertainties according to PDF4LHC recommendation.
 # Equation 30 in http://arxiv.org/pdf/1510.03865v1.pdf, with r = 1.5
 # (alpha_s uncertainty is +- 0.0015, and we use 0.119 and 0.117 PDF sets)

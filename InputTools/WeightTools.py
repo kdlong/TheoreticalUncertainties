@@ -1,6 +1,29 @@
 from collections import OrderedDict
+import Utilities.scalePDFUncertainties as Uncertainty
 from DataFormats.FWLite import Handle, Events, Runs
+import ConfigHistFactory
+import numpy
+import os
+import Ntuple
 
+def getLHEInfoTag(holder, handle):
+    check = holder.__iter__().next()
+    lheLabel = "externalLHEProducer"
+    check.getByLabel(lheLabel, handle)
+    try:
+        lheStuff = handle.product()
+        return lheLabel
+    except RuntimeError:
+        pass
+    try:
+        lheLabel = "source"
+        check.getByLabel(lheLabel, handle)
+        lheStuff = handle.product()
+        return lheLabel
+    except:
+        print "Error getting LHE info from file."
+        print "Are you sure this file contains LHE weights?"
+        raise
 def getWeightsFromEDMFile(edm_file_name, cross_section=1):
     if "/store/" in edm_file_name:
         edm_file_name = "/".join(["root://cmsxrootd.fnal.gov/",
@@ -9,20 +32,7 @@ def getWeightsFromEDMFile(edm_file_name, cross_section=1):
         raise FileNotFoundException("File %s was not found." % edm_file_name)
     events = Events(edm_file_name)
     eventsHandle = Handle("LHEEventProduct")
-    firstevent = events.__iter__().next()
-    lheLabel = "externalLHEProducer"
-    firstevent.getByLabel(lheLabel, eventsHandle)
-    try:
-        lheStuff = eventsHandle.product()
-    except RuntimeError:
-        try:
-            lheLabel = "source"
-            firstevent.getByLabel(lheLabel, eventInfoHandle)
-            lheStuff = eventHandle.product()
-        except:
-            print "Error getting LHE info from file."
-            print "Are you sure this file contains LHE weights?"
-            exit(0)
+    lheLabel = getLHEInfoTag(events, eventsHandle)
     lhe_weight_sums = []
     weight_ids = []
     for i, event in enumerate(events):
@@ -43,7 +53,7 @@ def getWeightsFromEDMFile(edm_file_name, cross_section=1):
 def getWeightsFromROOTFile(filename, analysis, cut, normalize):
     path = "/cms/kdlong" if "hep.wisc.edu" in os.environ['HOSTNAME'] else \
         "/afs/cern.ch/user/k/kelong/work"
-    config_factory = ConfigHistFactory(
+    config_factory = ConfigHistFactory.ConfigHistFactory(
         "%s/AnalysisDatasetManager" % path,
         analysis
     )
@@ -93,3 +103,14 @@ def getVariations(weight_ids, weight_sums):
 def excludeKeysFromDict(values, exclude):
     return [x for key, x in values.iteritems()
             if key not in exclude]
+def getScaleAndPDFUnc(files):
+    variations = getWeightsFromEDMFile(files)
+    uncertainty = {}
+    uncertainty["scales"] = Uncertainty.getScaleUncertainty(excludeKeysFromDict(
+        variations["1000"], ["1001", "1006", "1008"])
+    )
+    uncertainty["pdf"] = Uncertainty.getFullNNPDFUncertainty(excludeKeysFromDict(
+        variations["2000"], ["2101", "2102"]),
+        [variations["2000"]["2101"], variations["2000"]["2102"]]
+    )
+    return uncertainty

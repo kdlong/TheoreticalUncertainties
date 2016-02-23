@@ -6,9 +6,7 @@ import os
 import datetime
 import ROOT
 import Utilities.scalePDFUncertainties as Uncertainty
-import Utilities.Ntuple as Ntuple
-from Utilities.ConfigHistFactory import ConfigHistFactory
-import Utilities.helper_functions as helper
+from InputTools import Ntuple, WeightTools
 
 def getComLineArgs():
     parser = argparse.ArgumentParser()
@@ -33,8 +31,8 @@ def main():
     if not args.denominator == args.numerator:
         sameFile = True
 
-    num_sel = getWeightsFromFile(args.numerator, args.analysis, args.num_cut, sameFile)
-    denom_sel = getWeightsFromFile(args.denominator, args.analysis, args.denom_cut, sameFile)
+    num_sel = WeightTools.getWeightsFromROOTFile(args.numerator, args.analysis, args.num_cut, sameFile)
+    denom_sel = WeightTools.getWeightsFromROOTFile(args.denominator, args.analysis, args.denom_cut, sameFile)
     variations = num_sel
     central = num_sel["1000"]["1001"]/denom_sel["1001"]["1001"]
     for weight_set in num_sel.keys():

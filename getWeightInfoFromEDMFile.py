@@ -2,12 +2,12 @@
 import argparse
 import re
 import sys
-tmparg = sys.argv
+tmparg = sys.argv[:]
 sys.argv = []
 import xml.etree.ElementTree as ET
-from Utilities import EDMWeightInfo
+from InputTools import EDMWeightInfo
 from Utilities import LHAPDFInfo
-from Utilities import prettytable
+from OutputTools import prettytable
 sys.argv = tmparg
 # Because pyROOT hijackes the command line args
 def getComLineArgs():
