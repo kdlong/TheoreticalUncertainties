@@ -27,7 +27,8 @@ def main():
             break
     print "Cross section from file is %s \pm %s %s (stat)" % (values[0], values[1], units) 
     print "\nComputing scale and PDF uncertainties" 
-    unc = weight_tools.getScaleAndPDFUnc(args.file_name)
+    variations = getWeightsFromEDMFile(args.file_name)
+    unc = weight_tools.getScaleAndPDFUnc(variations)
     print "\nFinal values:"
     print "%s" % values[0] + \
         "^{%0.1f%%}_{%0.1f%%} (scale) \pm %0.1f (pdf+alpha_s) " % tuple(round(x*100, 1) for x in 

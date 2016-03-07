@@ -5,6 +5,8 @@ import ConfigHistFactory
 import numpy
 import os
 import Ntuple
+import ROOT
+import logging
 
 def getLHEInfoTag(holder, handle):
     check = holder.__iter__().next()
@@ -103,8 +105,7 @@ def getVariations(weight_ids, weight_sums):
 def excludeKeysFromDict(values, exclude):
     return [x for key, x in values.iteritems()
             if key not in exclude]
-def getScaleAndPDFUnc(files):
-    variations = getWeightsFromEDMFile(files)
+def getScaleAndPDFUnc(variations):
     uncertainty = {}
     uncertainty["scales"] = Uncertainty.getScaleUncertainty(excludeKeysFromDict(
         variations["1000"], ["1001", "1006", "1008"])
