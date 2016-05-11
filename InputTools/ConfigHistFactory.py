@@ -74,15 +74,13 @@ class ConfigHistFactory(object):
         return self.mc_info
     def getListOfPlotObjects(self):
         return self.plot_objects.keys()
-    def hackInAliases(self, cut_string, channel=""):
+    def hackInAliases(self, expr, channel=""):
         if channel != "":
             for name, value in self.aliases['State'][channel].iteritems():
-                cut_string = cut_string.replace(name, value)
+                expr = expr.replace(name, value)
         for name, value in self.aliases['Event'].iteritems():
-            cut_string = cut_string.replace(name, value)
-        print "Cut string is"
-        print cut_string
-        return cut_string
+            expr = expr.replace(name, value)
+        return expr
 
 def main():
     test = ConfigHistFactory("/afs/cern.ch/user/k/kelong/work/AnalysisDatasetManager",
