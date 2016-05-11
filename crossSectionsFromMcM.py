@@ -26,6 +26,6 @@ for sample in r.json()["results"]:
             # Sometimes generator_parameters has ?empty? lists in it
             values = [i for i in gen_params if type(i) is dict]
             print "\nCross section for dataset %s" \
-                  "from request %s" % (sample["dataset_name"], sample["prepid"])
+                  " from request %s" % (sample["dataset_name"], sample["prepid"])
             print "---->  sigma = %s pb" % values[0]["cross_section"]
 os.remove(temp_cookie_file)
