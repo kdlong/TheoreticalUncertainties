@@ -1,10 +1,13 @@
 #!/usr/bin/env python
+import sys
+import argparse
+tmparg = sys.argv[:]
+sys.argv = []
 import InputTools.WeightTools as weight_tools
 import subprocess
 import re
 import os
-import sys
-import argparse
+sys.argv = tmparg
 
 def getComLineArgs():
     parser = argparse.ArgumentParser()
@@ -27,7 +30,7 @@ def main():
             break
     print "Cross section from file is %s \pm %s %s (stat)" % (values[0], values[1], units) 
     print "\nComputing scale and PDF uncertainties" 
-    variations = getWeightsFromEDMFile(args.file_name)
+    variations = weight_tools.getWeightsFromEDMFile(args.file_name)
     unc = weight_tools.getScaleAndPDFUnc(variations)
     print "\nFinal values:"
     print "%s" % values[0] + \

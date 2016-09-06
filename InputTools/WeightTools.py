@@ -98,9 +98,22 @@ def getVariations(weight_ids, weight_sums):
         print "length of weight_ids: %i" % len(weight_ids) 
         print "length of weight_sums: %i" % len(weight_sums) 
         exit(1)
-    for weight in zip(weight_ids, weight_sums):
-        label = str(int(round(float(weight[0]), -3)))
-        values[label][weight[0]] = weight[1]
+    if float(weight_ids[0]) > 10:
+        for weight in zip(weight_ids, weight_sums):
+            label = ''.join([weight[0][0], "000"]) 
+            values[label][weight[0]] = weight[1]
+    else:
+        # Hackity hack hack for MadGraph LO samples
+        for i,weight in enumerate(zip(weight_ids, weight_sums)):
+            entry = 1
+            weight_id = str(1000+i+1)
+            if i > 8:
+                entry = 2
+                weight_id = str(2000+i-8)
+            label = ''.join([str(entry), "000"]) 
+            values[label][weight_id] = weight[1]
+            if i > 109:
+                break
     return values
 def excludeKeysFromDict(values, exclude):
     return [x for key, x in values.iteritems()

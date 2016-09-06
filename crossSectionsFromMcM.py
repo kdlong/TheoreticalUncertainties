@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+
+# Usage ./crossSectionsFromMcM -d "datasetname"
+#
+# Wildcards are supported. Note that it's always best to put them
+# in quotes so they aren't expanded by bash
+#
+# Kenneth Long U. Wisconsin -- Madison
+# 2016-05-12
+#
 import requests, cookielib
 import subprocess
 import argparse
@@ -23,7 +32,7 @@ r = requests.get("/".join([mcm_address, "search"]), params=search_options, cooki
 for sample in r.json()["results"]:
     gen_params = sample["generator_parameters"]
     if len(gen_params) and "GS" in sample["prepid"]:
-            # Sometimes generator_parameters has ?empty? lists in it
+            # Sometimes generator_parameters has empty lists in it
             values = [i for i in gen_params if type(i) is dict]
             print "\nCross section for dataset %s" \
                   " from request %s" % (sample["dataset_name"], sample["prepid"])
