@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # Usage ./crossSectionsFromMcM -d "datasetname"
+# Before using, run bash getCookie.sh to get the private cookie file
 #
 # Wildcards are supported. Note that it's always best to put them
 # in quotes so they aren't expanded by bash
@@ -19,11 +20,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--dataset_name", "-d", type=str, required=True)
 args = parser.parse_args()
 
-temp_cookie_file = "mcmcookies.temp"
+cookie_file = os.path.expanduser("~/private/prod-cookie.txt")
 mcm_address = "https://cms-pdmv.cern.ch/mcm"
-subprocess.call(["cern-get-sso-cookie", "--krb", "-r", "-u", mcm_address, 
-    "-o", temp_cookie_file])
-c = cookielib.MozillaCookieJar(temp_cookie_file)
+if not os.path.isfile(cookie_file):
+    print "Cookie file not found in ~/private"
+    print "You either forgot to run the getCookie.sh script or it failed"
+    exit(1)
+c = cookielib.MozillaCookieJar(cookie_file)
 c.load()
 search_options = {"db_name" : "requests", 
     "page" : -1,
@@ -37,4 +40,3 @@ for sample in r.json()["results"]:
             print "\nCross section for dataset %s" \
                   " from request %s" % (sample["dataset_name"], sample["prepid"])
             print "---->  sigma = %s pb" % values[0]["cross_section"]
-os.remove(temp_cookie_file)
