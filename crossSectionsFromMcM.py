@@ -39,4 +39,4 @@ for sample in r.json()["results"]:
             values = [i for i in gen_params if type(i) is dict]
             print "\nCross section for dataset %s" \
                   " from request %s" % (sample["dataset_name"], sample["prepid"])
-            print "---->  sigma = %s pb" % values[0]["cross_section"]
+            print "---->  sigma = %s pb" % values[-1]["cross_section"]
