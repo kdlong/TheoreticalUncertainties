@@ -68,7 +68,7 @@ def getWeightsFromROOTFile(filename, analysis, cut, normalize):
             (filename, analysis))
     ntuple = Ntuple.Ntuple("LHEweights")
     tuple_name = "analyze%s/Ntuple" % ("WZ" if "WZ" in analysis else "ZZ")
-    proof_name = "-".join([filename, "%s#/%s" % (analysis.replace("/", "-"), 
+    proof_name = "_".join([filename, "%s#/%s" % (analysis.replace("/", "_"), 
         tuple_name)])
     ntuple.setProofPath(proof_name)
     metaTree = ROOT.TChain(tuple_name.replace("Ntuple", "MetaData"))

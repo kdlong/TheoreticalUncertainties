@@ -42,7 +42,9 @@ def main():
     args = getComLineArgs()
     lhapdf_info = LHAPDFInfo.getPDFIds()
     weight_info = EDMWeightInfo.getWeightIDs(args.file_name)
-    if args.print_header:
+    print weight_info
+    print_header = args.print_header
+    if print_header:
         print weight_info
         return
     root = ET.fromstring("<header>" + weight_info + "</header>")
