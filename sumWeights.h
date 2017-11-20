@@ -15,10 +15,10 @@ public :
   TTree          *fChain;
 
   std::vector<float>* fWeights;
-  Float_t fOrigWeight;
+  double fOrigWeight;
 
   TBranch        *fWeightsBranch;
-  //TBranch        *fOrigWeightBranch;
+  TBranch        *fOrigWeightBranch;
   
   TTreeFormula   *fCutFormula;
 
@@ -53,8 +53,9 @@ void sumWeights::Init(TTree *tree)
   fChain = tree;
 
   fWeights = 0;
+  fOrigWeight = 0;
   fChain->SetBranchAddress("LHEweights", &fWeights, &fWeightsBranch);
-  //fChain->SetBranchAddress("weight", &fOrigWeight, &fOrigWeightBranch);
+  fChain->SetBranchAddress("weight", &fOrigWeight, &fOrigWeightBranch);
 
   SafeDelete(fCutFormula);
   fCutFormula = new TTreeFormula("CutFormula", fOption, fChain);

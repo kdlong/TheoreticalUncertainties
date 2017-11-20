@@ -79,6 +79,8 @@ def getWeightsFromROOTFile(filename, analysis, cut, normalize):
             weight_ids.append(weight_id)
         break
     weight_sums = ntuple.getSumWeights(config_factory.hackInAliases(cut))
+    if len(weight_sums) == 1:
+        return { "1000" : {"1001" : weight_sums[0]}}
     if normalize:
         proof_name = "-".join([filename, "%s#/%s" % (analysis.replace("/", "-"), 
             tuple_name.split("/")[0] + "/MetaData")])
