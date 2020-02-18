@@ -82,7 +82,7 @@ def getWeightsFromROOTFile(filename, analysis, cut, normalize):
     if len(weight_sums) == 1:
         return { "1000" : {"1001" : weight_sums[0]}}
     if normalize:
-        proof_name = "-".join([filename, "%s#/%s" % (analysis.replace("/", "-"), 
+        proof_name = "_".join([filename, "%s#/%s" % (analysis.replace("/", "_"), 
             tuple_name.split("/")[0] + "/MetaData")])
         ntuple.setProofPath(proof_name)
         norm = mc_info[filename]["cross_section"]/ntuple.getBranchSum("initLHEweightSums[0]")

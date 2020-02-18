@@ -10,8 +10,8 @@ Created: 13/02/2016
 With additions by Kenneth Long, U. Wisconsin -- Madison
 """
 def getWeightIDs(edm_file_name):
-    if "/store/" in edm_file_name:
-        edm_file_name = "/".join(["root://cmsxrootd.fnal.gov/",
+    if "/store/" in edm_file_name[:7]:
+        edm_file_name = "/".join(["root://cms-xrd-global.cern.ch/",
             edm_file_name])
     elif not os.path.isfile(edm_file_name):
         raise FileNotFoundException("File %s was not found." % edm_file_name)
@@ -32,7 +32,6 @@ def getWeightIDs(edm_file_name):
             if 'weightgroup' in line:
                 isWeights = True
         if isWeights:
-            print line
             lines.extend(hlines)
             break
     return ''.join(lines).rstrip("<")

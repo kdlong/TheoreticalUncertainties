@@ -1,6 +1,7 @@
 import ROOT
 import array
 import glob
+import argparse
 
 ROOT.gROOT.SetBatch(True)
 
@@ -39,10 +40,16 @@ def readMATRIXHistData(hist_file_name):
         raise(ValueError, "Invalid MATRIX output. Output should have 7 values per entry")
     return data
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-f', '--file_path', type=str, required=True, help='folder with .dat files')
+parser.add_argument('-o', '--output_path', type=str, required=True, help='output folder')
+args = parser.parse_args()
+
 canvas = ROOT.TCanvas("canvas", "canvas")
 
-hist_file_path = "result/run_07/NNLO-run/distributions/*.dat"
-output_path = "~/www/ZZMatrixDistributions" 
+#hist_file_path = "result/run_07/NNLO-run/distributions/*.dat"
+hist_file_path = '/'.join([args.file_path, "*.dat"])
+output_path = args.output_path
 
 for hist_file in glob.glob(hist_file_path):
     central, scale_up, scale_down = makeMATRIXHist(hist_file)
