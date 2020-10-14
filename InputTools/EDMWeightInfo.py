@@ -9,7 +9,7 @@ Author: Nick Smith, U. Wisconsin -- Madison
 Created: 13/02/2016
 With additions by Kenneth Long, U. Wisconsin -- Madison
 """
-def getWeightIDs(edm_file_name):
+def getWeightIDs(edm_file_name, full_header):
     if "/store/" in edm_file_name[:7]:
         edm_file_name = "/".join(["root://cms-xrd-global.cern.ch/",
             edm_file_name])
@@ -26,12 +26,13 @@ def getWeightIDs(edm_file_name):
         if i == lheStuff.headers_size():
             break
         hlines = []
-        isWeights = False
+        toStore = False
         for line in h.lines():
             hlines.append(line)
-            if 'weightgroup' in line:
-                isWeights = True
-        if isWeights:
+            if 'weightgroup' in line or full_header:
+                toStore = True
+        if toStore:
             lines.extend(hlines)
-            break
+            if not full_header:
+                break
     return ''.join(lines).rstrip("<")

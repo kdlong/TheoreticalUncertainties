@@ -18,10 +18,15 @@ def getComLineArgs():
             help="EDM file name (should be full path, starting"
                 "with '/store' for file on DAS"
     )
-    parser.add_argument("--print_header", action="store_true",
+    header = parser.add_mutually_exclusive_group()
+    header.add_argument("--print_header", action="store_true",
             help="Print the raw header containing weight information. " 
             "Useful for cases where the weight parsing does not work "
             "properly, including MadGraph LO samples"
+    )
+    header.add_argument("--print_full_header", action="store_true",
+            help="Print the full raw LHE header. Useful to see if things" 
+            " are really screwed up"
     )
     return parser.parse_args()
 def getPDFSetInfo(entry, lhapdf_info):
@@ -41,10 +46,9 @@ def getPDFSetInfo(entry, lhapdf_info):
 def main():
     args = getComLineArgs()
     lhapdf_info = LHAPDFInfo.getPDFIds()
-    weight_info = EDMWeightInfo.getWeightIDs(args.file_name)
+    weight_info = EDMWeightInfo.getWeightIDs(args.file_name, args.print_full_header)
     print weight_info
-    print_header = args.print_header
-    if print_header:
+    if args.print_header:
         print weight_info
         return
     root = ET.fromstring("<header>" + weight_info + "</header>")
